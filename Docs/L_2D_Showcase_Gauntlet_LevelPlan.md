@@ -38,7 +38,7 @@ The level is tuned as a 3-5 minute first-pass route for a 2D character controlle
 | --- | ---: | --- | --- |
 | 00 Onboarding Meadow | 0-2600 | Start area, basic movement, EXP trail, first checkpoint. | `BP_Third_2D_Character`, `BP_GM_2D_Plat`, `BP_EXPPickUp`, `BP_Respawn`, earth/grass sprites |
 | 01 Double-Jump Grove | 2600-5200 | Awards double jump and introduces safe vertical platforming. | `BP_DoubleJumpPickUp`, `BP_AdditionalJump`, blocking platforms, grass sprites |
-| 02 Hazard Causeway | 5200-7900 | Tests reading and recovering from spikes, heat, falling platforms, and slippery surfaces. | `BP_Spikes`, `BP_HotSurface`, `BP_FallingRumble`, `BP_SlipperySurface`, `BP_HealthPickUp` |
+| 02 Hazard Causeway | 5200-7900 | Tests reading and recovering from spike lanes, falling platforms, and slippery surfaces. | `BP_Spikes`, `BP_FallingRumble`, `BP_SlipperySurface`, `BP_HealthPickUp` |
 | 03 Wind/Water Cavern | 7900-10800 | Demonstrates traversal modifiers and environmental verbs. | `BP_Trampoline`, `BP_Wind`, `BP_Swimming`, `BP_JDPlatform`, `BP_AbilityPickUp` |
 | 04 Combat Ridge | 10800-14000 | Layers enemy archetypes over uneven terrain. | `BP_IdleEnemy`, `BP_FocusEnemy`, `BP_FlyingEnemy`, `BP_RandomProjectileEnemy`, `BP_FocusProjectileEnemy`, `BP_DamagePickUp` |
 | 05 Gauntlet Ascent | 14000-17600 | Chains platforming, moving platforms, damaged platforms, and enemy pressure. | `BP_MovingPlatform`, `BP_DamagedPlatform`, `BP_BurrowingEnemy`, `BP_ExplosiveEnemy`, `BP_HealthPickUp` |
@@ -48,6 +48,7 @@ The level is tuned as a 3-5 minute first-pass route for a 2D character controlle
 
 - The generator sets the world override to `BP_GM_2D_Plat` and places both `BP_Third_2D_Character` and a `PlayerStart` near the first meadow platform.
 - Blocking volumes define dependable 2D collision slabs while grass and earth Paper2D sprites provide visual dressing from the existing `Content/Environement_assets/Earth` folder.
+- The repository's `BP_HotSurface` asset currently fails Unreal package validation, so the generated heat timing lane uses the working `BP_Spikes` hazard Blueprint as a stand-in.
 - Text render markers are intentionally placed in the editor build to make each beat easy to find during review; they can be hidden or deleted after approval.
 - Checkpoints are placed after every major skill test to support several minutes of gameplay without forcing complete restarts.
 - The finale uses arena walls plus `BP_Badger`, `BP_DestructibleWall`, and `BP_Door` as a clear end-of-level objective.

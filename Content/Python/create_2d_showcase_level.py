@@ -38,7 +38,7 @@ ASSET_PATHS = {
     "damaged_platform": "/Game/ThirdPerson/Blueprints/Environment/BP_DamagedPlatform.BP_DamagedPlatform_C",
     "delete_platform": "/Game/ThirdPerson/Blueprints/Environment/BP_DeletePlatform.BP_DeletePlatform_C",
     "falling_rumble": "/Game/ThirdPerson/Blueprints/Environment/BP_FallingRumble.BP_FallingRumble_C",
-    "hot_surface": "/Game/ThirdPerson/Blueprints/Environment/BP_HotSurface.BP_HotSurface_C",
+    "hot_surface": "/Game/ThirdPerson/Blueprints/Environment/BP_Spikes.BP_Spikes_C",
     "slippery_surface": "/Game/ThirdPerson/Blueprints/Environment/BP_SlipperySurface.BP_SlipperySurface_C",
     "spikes": "/Game/ThirdPerson/Blueprints/Environment/BP_Spikes.BP_Spikes_C",
     "trampoline": "/Game/ThirdPerson/Blueprints/Environment/BP_Trampoline.BP_Trampoline_C",
@@ -68,6 +68,8 @@ ASSET_PATHS = {
     "earth_2": "/Game/Environement_assets/Earth/2.2",
     "earth_3": "/Game/Environement_assets/Earth/3.3",
     "earth_4": "/Game/Environement_assets/Earth/4.4",
+    "platform_mesh": "/Game/LevelPrototyping/Meshes/SM_Cube.SM_Cube",
+    "platform_material": "/Game/LevelPrototyping/Materials/MI_PrototypeGrid_Gray.MI_PrototypeGrid_Gray",
 }
 
 
@@ -98,9 +100,10 @@ def load_asset(path: str):
 
 
 def load_class(path: str):
-    cls = unreal.EditorAssetLibrary.load_blueprint_class(path)
+    blueprint_path = path[:-2] if path.endswith("_C") else path
+    cls = unreal.load_class(None, path)
     if not cls:
-        cls = unreal.load_class(None, path)
+        cls = unreal.EditorAssetLibrary.load_blueprint_class(blueprint_path)
     if not cls:
         unreal.log_warning(f"Could not load class: {path}")
     return cls
@@ -152,8 +155,23 @@ def spawn_blocking_box(label: str, x: float, z: float, width: float, height: flo
         actor.set_actor_scale3d(unreal.Vector(width / 200.0, depth / 200.0, height / 200.0))
 
 
+def spawn_visual_box(label: str, x: float, z: float, width: float, height: float, *, depth: float = WALL_DEPTH) -> None:
+    actor = spawn_actor(unreal.StaticMeshActor, label, x, z, y=LANE_Y + 5.0)
+    if not actor:
+        return
+    component = actor.get_component_by_class(unreal.StaticMeshComponent)
+    mesh = load_asset(ASSET_PATHS["platform_mesh"])
+    material = load_asset(ASSET_PATHS["platform_material"])
+    if component and mesh:
+        component.set_static_mesh(mesh)
+        if material:
+            component.set_material(0, material)
+    actor.set_actor_scale3d(unreal.Vector(width / 100.0, depth / 100.0, height / 100.0))
+
+
 def spawn_platform(label: str, x: float, z: float, width: float, *, height: float = PLATFORM_Z_THICKNESS) -> None:
     spawn_blocking_box(label, x, z, width, height)
+    spawn_visual_box(f"Visual_{label}", x, z, width, height)
     add_ground_sprite_strip(f"Decor_{label}", x, z + height * 0.65, width)
 
 
@@ -168,6 +186,10 @@ def add_ground_sprite_strip(label_prefix: str, center_x: float, z: float, width:
         return
     sprite = load_asset(ASSET_PATHS["grass_sprite"])
     details = load_asset(ASSET_PATHS["grass_details"])
+    if sprite and sprite.get_class().get_name() != "PaperSprite":
+        sprite = None
+    if details and details.get_class().get_name() != "PaperSprite":
+        details = None
     count = max(1, int(math.ceil(width / 320.0)))
     start_x = center_x - (count - 1) * 160.0
     for idx in range(count):
@@ -199,7 +221,7 @@ def add_background_tiles() -> None:
             actor = spawn_actor(sprite_class, f"Backdrop_Earth_{lane}_{i:02d}", float(x), float(z), y=-360.0 - lane * 20.0)
             if actor:
                 comp = actor.get_component_by_class(unreal.PaperSpriteComponent)
-                if comp and sprite:
+                if comp and sprite and sprite.get_class().get_name() == "PaperSprite":
                     comp.set_editor_property("source_sprite", sprite)
                 actor.set_actor_scale3d(unreal.Vector(3.5, 3.5, 3.5))
 
@@ -218,7 +240,7 @@ def add_core_world_settings() -> None:
 
     camera = spawn_actor(unreal.CameraActor, "CineCamera_2D_SideView", 9000.0, 900.0, y=-3300.0)
     if camera:
-        camera.set_actor_rotation(unreal.Rotator(0.0, 90.0, 0.0))
+        camera.set_actor_rotation(unreal.Rotator(0.0, 90.0, 0.0), False)
         camera_component = camera.get_component_by_class(unreal.CameraComponent)
         if camera_component:
             camera_component.set_editor_property("projection_mode", unreal.CameraProjectionMode.ORTHOGRAPHIC)
@@ -226,7 +248,7 @@ def add_core_world_settings() -> None:
 
     light = spawn_actor(unreal.DirectionalLight, "KeyLight_Warm2D", 3500.0, 1600.0, y=-900.0, yaw=-40.0)
     if light:
-        light.set_actor_rotation(unreal.Rotator(-42.0, -35.0, 0.0))
+        light.set_actor_rotation(unreal.Rotator(-42.0, -35.0, 0.0), False)
     spawn_actor(unreal.SkyLight, "SkyLight_SoftFill", 4000.0, 1200.0, y=-900.0)
 
 
@@ -331,6 +353,8 @@ def add_beat_markers(beats: Iterable[Beat]) -> None:
 
 def main() -> None:
     unreal.log(f"Creating {LEVEL_PACKAGE}...")
+    if unreal.EditorAssetLibrary.does_asset_exist(LEVEL_PACKAGE):
+        unreal.EditorAssetLibrary.delete_asset(LEVEL_PACKAGE)
     unreal.EditorLevelLibrary.new_level(LEVEL_PACKAGE)
     add_core_world_settings()
     add_background_tiles()
