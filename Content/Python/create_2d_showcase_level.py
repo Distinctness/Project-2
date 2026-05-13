@@ -1,7 +1,13 @@
 """Build the 2D showcase level for Echoes of Four Realms in Unreal Engine 5.7.4.
 
-Run from the UE Python console or command line:
-    py "Content/Python/create_2d_showcase_level.py"
+Run from the UE Output Log with a project-root-safe path resolver:
+    py import runpy, unreal; runpy.run_path(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_content_dir()) + "Python/create_2d_showcase_level.py", run_name="__main__")
+
+Or run from the editor command line with an absolute script path:
+    UnrealEditor.exe "<absolute path>/EchoesOfFourRealms.uproject" -ExecutePythonScript="<absolute path>/Content/Python/create_2d_showcase_level.py"
+
+Do not run `py "Content/Python/create_2d_showcase_level.py"` from the Output Log;
+Unreal resolves that relative path from the engine binary folder, not the project.
 
 The script creates /Game/Levels/L_2D_Showcase_Gauntlet using existing project
 content: 2D character/game mode, environment blueprints, pickups, enemies, and
@@ -13,7 +19,7 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from typing import Iterable
 
 import unreal
 

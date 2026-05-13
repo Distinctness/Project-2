@@ -5,12 +5,26 @@
 ## How to build the level in UE 5.7.4
 
 1. Open `EchoesOfFourRealms.uproject` in Unreal Engine 5.7.4.
-2. Open the Python console or run an editor command line.
-3. Execute:
+2. Open the Output Log command line or run an editor command line.
+3. Execute one of the supported commands below.
+
+   **Output Log command**
+
+   Paste this as a single line in the Unreal Output Log command box:
 
    ```python
-   py "Content/Python/create_2d_showcase_level.py"
+   py import runpy, unreal; runpy.run_path(unreal.Paths.convert_relative_path_to_full(unreal.Paths.project_content_dir()) + "Python/create_2d_showcase_level.py", run_name="__main__")
    ```
+
+   **Editor command line**
+
+   Replace the placeholder with the absolute path to your local checkout:
+
+   ```powershell
+   "C:\Program Files\Epic Games\UE_5.7\Engine\Binaries\Win64\UnrealEditor.exe" "<absolute path>\EchoesOfFourRealms.uproject" -ExecutePythonScript="<absolute path>\Content\Python\create_2d_showcase_level.py"
+   ```
+
+   Do **not** run `py "Content/Python/create_2d_showcase_level.py"` from the Output Log. Unreal resolves that relative path from the engine binary directory, which produces paths like `C:/Program Files/Epic Games/UE_5.7/Engine/Binaries/Win64/Content/Python/create_2d_showcase_level.py` instead of this project's `Content/Python` directory.
 
 4. Open `/Game/Levels/L_2D_Showcase_Gauntlet` and press Play.
 
